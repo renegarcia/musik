@@ -1,0 +1,14 @@
+1. MediaTableModel is not safe if you remove or insert rows. We should either
+
+Reimplement coreplaylist (emit signals to connect to something like beginremoverows, endremoverows
+in the model
+
+Change the core/model architechture to let the core be less independent from the model and the model
+more aware of the core and the xmms api.
+
+
+2. Merge qxmms2 into main code DONE
+
+3. implement QXmmss2::seek ( int ms ) DONE
+
+4. Connect dataChanged signal from the core to the models
