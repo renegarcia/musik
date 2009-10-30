@@ -28,7 +28,8 @@ public:
     bool active();
     void activate( int pos = -1 );
 
-    void insert( QString url );
+    //void insert( QString url );
+    void add( QString url );
     void remove( int pos );
     void move ( unsigned int oldPos, unsigned int newPos );
 

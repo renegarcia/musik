@@ -62,7 +62,7 @@ CorePlaylist::activate( int pos )
 }
 
 void
-CorePlaylist::insert( QString url )
+CorePlaylist::add( QString url )
 {
     xmms->playlist.addUrl( url.toStdString(), _playlistName );
 }

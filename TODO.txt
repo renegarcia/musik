@@ -1,7 +1,7 @@
 1. MediaTableModel is not safe if you remove or insert rows. We should either
 
 Reimplement coreplaylist (emit signals to connect to something like beginremoverows, endremoverows
-in the model
+in the model DONE
 
 Change the core/model architechture to let the core be less independent from the model and the model
 more aware of the core and the xmms api.

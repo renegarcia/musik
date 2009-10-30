@@ -1,8 +1,10 @@
 #include "playlistwidget.h"
-#include <QBoxLayout>
+#include <QGridLayout>
 #include <QModelIndex>
+#include <QLabel>
+#include <QFileDialog>
 
-PlaylistWidget::PlaylistWidget( QWidget *parent, CorePlaylist *core )
+PlaylistWidget::PlaylistWidget( QWidget *parent, Xmms::Client *xmms )
         : QWidget(parent)
 {
     proxyModel = 0;
@@ -19,13 +21,20 @@ PlaylistWidget::PlaylistWidget( QWidget *parent, CorePlaylist *core )
 
     filter = new KLineEdit( this );
     filter->setClearButtonShown( true );
+    filter->setVisible( false );
 
-    this->setLayout( new QBoxLayout( QBoxLayout::TopToBottom, this ) );
-    this->layout()->addWidget( view );
-    this->layout()->addWidget( filter );
+    jumpLabel = new QLabel( tr("&Jump"), this );
+    jumpLabel->setBuddy( filter );
+    jumpLabel->setVisible( false );
 
-    if ( core )
-        setCore( core );
+    setCore( new CorePlaylist( this, xmms ) );
+
+    QGridLayout *layout = new QGridLayout( this );
+    layout->addWidget( jumpLabel, 0, 0);
+    layout->addWidget( filter, 0, 1);
+    layout->addWidget( view, 1, 0, 1, 2 );
+    this->setLayout( layout );
+    
 }
 
 void
@@ -48,12 +57,11 @@ PlaylistWidget::setCore( CorePlaylist *core )
     view->sortByColumn( -1 );
     view->setSortingEnabled( true );
 
+    connect ( filter, SIGNAL(textChanged(QString)),
+              proxyModel, SLOT(setFilterWildcard(QString)));
 
-    connect ( filter, SIGNAL(textChanged(QString)), proxyModel,
-                  SLOT(setFilterWildcard(QString)));
-
-    connect( view, SIGNAL(activated(QModelIndex)), this,
-             SLOT(play(QModelIndex)));
+    connect( view, SIGNAL(activated(QModelIndex)),
+             this, SLOT(play(QModelIndex)));
 }
 
 /**
@@ -74,6 +82,33 @@ PlaylistWidget::removeSelection()
     for ( int i = rowList.size() - 1; i > -1; i--){
         pos = proxyModel->mapToSource( rowList.at( i ) ).row();
         core->remove( pos );
+    }
+}
+
+void
+PlaylistWidget::setFilterVisible( bool ok )
+{
+    if ( ok ){
+        jumpLabel->show();
+        filter->show();
+        QString text = filter->text();
+        proxyModel->setFilterWildcard( text );
+        filter->setFocus();
+    }
+    else{
+        proxyModel->setFilterWildcard( "" );
+        jumpLabel->hide();
+        filter->hide();
+    }
+}
+
+void
+PlaylistWidget::addMedia()
+{
+    QList< QString > files = QFileDialog::getOpenFileNames( this,
+                                                    tr("Select media"));
+    foreach ( QString absName, files ){
+        core->add( "file://" + absName );
     }
 }
 

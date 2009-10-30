@@ -17,7 +17,8 @@ HEADERS += src/core/coreplaylist.h \
     src/core/types.h \
     src/ui/playlistwidget.h \
     src/playlist/sortfilterproxymodel.h \
-    src/ui/playlistmanagerwidget.h
+    src/ui/playlistmanagerwidget.h \
+    playlistwindow.h
 SOURCES += src/core/xmmsqt4.cpp \
     src/core/coreplaylist.cpp \
     src/playlist/tablemodel.cpp \
@@ -26,6 +27,7 @@ SOURCES += src/core/xmmsqt4.cpp \
     src/ui/playlistwidget.cpp \
     src/ui/kmain.cpp \
     src/playlist/sortfilterproxymodel.cpp \
-    src/ui/playlistmanagerwidget.cpp
+    src/ui/playlistmanagerwidget.cpp \
+    playlistwindow.cpp
 OTHER_FILES += brainstorm.txt \
     TODO.txt
