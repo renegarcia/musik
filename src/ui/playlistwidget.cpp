@@ -56,13 +56,13 @@ PlaylistWidget::setCore( CorePlaylist *core )
              SLOT(play(QModelIndex)));
 }
 
-
+/**
+  *Public slots
+  */
 void
-PlaylistWidget::play( const QModelIndex index )
+PlaylistWidget::viewPlaylist( const QString &name )
 {
-    int pos = proxyModel->mapToSource( index ).row();
-    core->activate( pos );
-    emit play();
+    core->setPlaylist( name );
 }
 
 void
@@ -75,4 +75,13 @@ PlaylistWidget::removeSelection()
         pos = proxyModel->mapToSource( rowList.at( i ) ).row();
         core->remove( pos );
     }
+}
+
+//private slots
+void
+PlaylistWidget::play( const QModelIndex index )
+{
+    int pos = proxyModel->mapToSource( index ).row();
+    core->activate( pos );
+    emit play();
 }

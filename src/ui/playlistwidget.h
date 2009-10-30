@@ -20,6 +20,7 @@ public:
 
 public slots:
     void removeSelection();
+    void viewPlaylist( const QString &name );
 
 signals:
     void play();

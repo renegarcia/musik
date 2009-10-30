@@ -25,7 +25,7 @@ CorePlaylist::playlistName()
 }
 
 void
-CorePlaylist::setPlaylist( QString playlistName )
+CorePlaylist::setPlaylist( const QString &playlistName )
 {
     if ( playlistName.toStdString() == xmms->playlist.DEFAULT_PLAYLIST ){
         isActive = true;
@@ -36,7 +36,9 @@ CorePlaylist::setPlaylist( QString playlistName )
         isActive = false;
         _playlistName = playlistName.toStdString();
     }
+    emit rowsAboutToBeRemoved( 0, cache.size() - 1 );
     cache.clear();
+    emit rowsRemoved ();
     xmms->playlist.listEntries( _playlistName )(
                 Xmms::bind ( &CorePlaylist::list_entries_cb, this ));
 }
@@ -114,6 +116,8 @@ CorePlaylist::gotConnection( bool ok )
                 Xmms::bind (&CorePlaylist::playlist_changed_cb, this));
         xmms->playlist.broadcastLoaded()(
                 Xmms::bind (&CorePlaylist::current_active_cb, this ));
+        xmms->medialib.broadcastEntryChanged()(
+                Xmms::bind( &CorePlaylist::entry_changed_cb, this ));
     }
 }
 
@@ -169,9 +173,10 @@ bool
 CorePlaylist::get_info_cb( const Xmms::PropDict &info, int playlistPos )
 {
     if ( keys.isEmpty() ){
+        emit rowsAboutToBeInserted( cache.size(), cache.size() );
         cache.append( entry_t () );
         info.each( boost::bind( &CorePlaylist::for_each_fcn, this, _1, _2, _3, cache.size() - 1 ) );
-        emit ( rowInserted( cache.size() - 1 ) );
+        emit rowsInserted ();
     }
     else{
         entry_t entry;
@@ -197,12 +202,14 @@ CorePlaylist::get_info_cb( const Xmms::PropDict &info, int playlistPos )
             }
         }
         if ( playlistPos == -1 ) {
+            emit rowsAboutToBeInserted( cache.size(), cache.size() );
             cache.append( entry );
-            emit rowInserted ( cache.size() - 1);
+            emit rowsInserted ();
         }
         else {
+            emit rowsAboutToBeInserted( playlistPos, playlistPos );
             cache.insert( playlistPos, entry );
-            emit rowInserted ( playlistPos );
+            emit rowsInserted ();
         }
     }
 
@@ -218,6 +225,41 @@ CorePlaylist::get_info_cb( const Xmms::PropDict &info, int playlistPos )
                                                     hash, _1 ));
     }
 
+    return true;
+}
+
+/**
+  *this function is called whenever some entries change in the playlist.
+  */
+bool
+CorePlaylist::update_info_cb( const Xmms::PropDict &info )
+{
+    unsigned int id = info.get< unsigned int >("id");
+    entry_t entry;
+    std::string xkey;
+    QVariant value;
+    Xmms::Dict::Variant xvalue;
+
+    for ( int pos = 0; pos < cache.size(); pos++ ){
+        entry = cache.at( pos );
+        if ( entry.value( "id" ) == id ){
+            foreach ( QString key, entry.keys() ){
+                xkey = key.toStdString();
+                if ( info.contains( xkey ) ){
+                    xvalue = info[ xkey ];
+                    if ( xvalue.type() == typeid( std::string ) )
+                        value = QString::fromLocal8Bit(
+                                boost::get< std::string > ( xvalue ).c_str() );
+                    else if ( xvalue.type() == typeid( int ) )
+                        value = boost::get< int > ( xvalue );
+                    else if ( xvalue.type() == typeid( unsigned int ) )
+                        value = boost::get< unsigned int > ( xvalue );
+                    entry.insert( key, value );
+                    emit dataChanged( pos, key );
+                }
+            }
+        }
+    }
     return true;
 }
 
@@ -272,6 +314,17 @@ CorePlaylist::current_active_cb( const std::string &activeName )
 }
 
 bool
+CorePlaylist::entry_changed_cb( const unsigned int id )
+{
+    foreach( entry_t entry, cache )
+        if ( entry.value("id") == id ){
+            xmms->medialib.getInfo( id )( Xmms::bind( &CorePlaylist::update_info_cb, this));
+            break;
+        }
+    return true;
+}
+
+bool
 CorePlaylist::playlist_changed_cb( const Xmms::Dict &info )
 {
     std::string playlist = info.get< std::string >("name");
@@ -307,16 +360,22 @@ CorePlaylist::playlist_changed_cb( const Xmms::Dict &info )
         break;
 
         case XMMS_PLAYLIST_CHANGED_REMOVE:
+        emit rowsAboutToBeRemoved ( pos, pos );
         cache.removeAt(pos);
-        emit rowsRemoved ( pos, pos );
+        emit rowsRemoved ();
+        break;
+
+        case XMMS_PLAYLIST_CHANGED_UPDATE:
+
         break;
 
         case XMMS_PLAYLIST_CHANGED_SHUFFLE:
         case XMMS_PLAYLIST_CHANGED_SORT:
         case XMMS_PLAYLIST_CHANGED_CLEAR:
         lastPos = cache.size() - 1;
-        emit rowsRemoved ( 0,  lastPos );
+        emit rowsAboutToBeRemoved ( 0,  lastPos );
         cache.clear();
+        emit rowsRemoved ();
         xmms->playlist.listEntries( _playlistName )(
                 Xmms::bind(&CorePlaylist::list_entries_cb, this));
         // this is puzzling! why the client doesn't grab the signal

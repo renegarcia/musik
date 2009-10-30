@@ -2,6 +2,7 @@
 #include "xmmsqt4.h"
 #include "mediatablemodel.h"
 #include "playlistwidget.h"
+#include "playlistmanagerwidget.h"
 #include "coreplaylist.h"
 #include "qxmms2.h"
 #include <KApplication>
@@ -41,9 +42,14 @@ int main(int argc, char *argv[])
     QXmms2 *qxmms2 = new QXmms2( 0, xmms );
 
     PlaylistWidget *pl = new PlaylistWidget(0, core);//better!
+    pl->setWindowTitle( "playlist viewer" );
     QShortcut *sc = new QShortcut( Qt::Key_Delete, pl );
     pl->connect( pl, SIGNAL(play()), qxmms2, SLOT(play()));
     pl->connect( sc, SIGNAL(activated()), pl, SLOT(removeSelection()));
     pl->show();
+    PlaylistManagerWidget *plman = new PlaylistManagerWidget( 0, xmms );
+    plman->setWindowTitle( "playlist manager" );
+    plman->show();
+    pl->connect( plman, SIGNAL(playlistSelected(QString)), pl, SLOT(viewPlaylist(QString)) );
     return a.exec();
 }

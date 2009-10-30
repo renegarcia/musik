@@ -29,14 +29,23 @@ MediaTableModel::MediaTableModel( QObject *parent, CorePlaylist *core )
     headers << "Track" << "Title" << "Album" << "Artist" << "Duration"
             << "Times played";
 
-    connect ( core, SIGNAL( rowInserted( int ) ), this,
-              SLOT( insertRow( int ) ) );
-
-    connect ( core, SIGNAL(rowsRemoved(int, int )), this,
-              SLOT( removeRows( int, int ) ) );
-
     connect ( core, SIGNAL(positionChanged(int)), this,
               SLOT( updatePosition( int ) ) );
+
+    connect ( core, SIGNAL(dataChanged(int,QString)), this,
+              SLOT( updateData( int, QString )) );
+
+    connect ( core, SIGNAL(rowsAboutToBeInserted(int,int)),
+              this, SLOT(plRowsAboutToBeInserted(int,int)));
+
+    connect ( core, SIGNAL(rowsInserted()),
+              this, SLOT( plRowsInserted() ));
+
+    connect ( core, SIGNAL(rowsAboutToBeRemoved(int,int)),
+              this, SLOT(plRowsAboutToBeRemoved(int,int)));
+
+    connect ( core, SIGNAL(rowsRemoved()),
+              this, SLOT(plRowsRemoved())) ;
 
     QList < QString > coreKeys( keys );
     coreKeys << "picture_front";
@@ -102,8 +111,33 @@ MediaTableModel::sort( int column, Qt::SortOrder order )
         key = "-" + key;
 
     core->sort( key );
-
 }
+
+//private slots
+void
+MediaTableModel::plRowsAboutToBeInserted( int first, int last )
+{
+    beginInsertRows( QModelIndex(), first, last);
+}
+
+void
+MediaTableModel::plRowsInserted()
+{
+    endInsertRows();
+}
+
+void
+MediaTableModel::plRowsAboutToBeRemoved( int first, int last )
+{
+    beginRemoveRows( QModelIndex(), first, last );
+}
+
+void
+MediaTableModel::plRowsRemoved()
+{
+    endRemoveRows();
+}
+
 
 QVariant
 MediaTableModel::data ( const QModelIndex & index,
@@ -149,24 +183,17 @@ MediaTableModel::data ( const QModelIndex & index,
 }
 
 void
-MediaTableModel::insertRow( int pos )
-{
-    beginInsertRows ( QModelIndex(), pos, pos );
-    endInsertRows ();
-}
-
-void
-MediaTableModel::removeRows( int first, int last )
-{
-    beginRemoveRows( QModelIndex (), first, last );
-    endRemoveRows ();
-}
-
-void
 MediaTableModel::updatePosition( int pos )
 {
     int colCount = keys.size();
     emit dataChanged( createIndex( pos, 0 ), createIndex( pos, colCount ));
+}
+
+void
+MediaTableModel::updateData( int pos, QString key )
+{
+    int col = keys.indexOf( key );
+    emit dataChanged( createIndex( pos, col ), createIndex( pos, col ) );
 }
 
 //Drag and drop

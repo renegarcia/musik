@@ -21,7 +21,7 @@ public:
       * if playlistName is omited, CorePlaylist will represent the current playlist in the server
       */
     CorePlaylist(QObject *parent = 0, Xmms::Client *xmms = 0, QString playlistName = "");
-    void setPlaylist( QString playlistName );
+    void setPlaylist( const QString &playlistName );
     void setClient( Xmms::Client *xmms );
 
     QString playlistName();
@@ -50,8 +50,10 @@ public:
     int rowCount();
 
 signals:
-    void rowInserted ( int );
-    void rowsRemoved ( int, int );
+    void rowsAboutToBeInserted( int, int );
+    void rowsInserted ();
+    void rowsAboutToBeRemoved( int, int );
+    void rowsRemoved ();
     void dataChanged ( int, QString );
     void positionChanged ( int );
 
@@ -68,13 +70,14 @@ private:
 
     bool list_entries_cb( const Xmms::List< unsigned int > &list );
     bool get_info_cb( const Xmms::PropDict &info, int playlistPos = -1 );
+    bool update_info_cb( const Xmms::PropDict &info );
     bool for_each_fcn (const std::string &key, const Xmms::Dict::Variant &value,
                        const std::string &origin, int position );
     bool bindata_retrieve_cb( const std::string &hash, const Xmms::bin &data );
     bool current_pos_cb( const Xmms::Dict &info );
     bool playlist_changed_cb( const Xmms::Dict &info );
     bool current_active_cb ( const std::string &activeName );
-
+    bool entry_changed_cb ( const unsigned int id );
 };
 
 #endif // COREPLAYLIST_H

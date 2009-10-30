@@ -5,6 +5,7 @@ LIBS += -lxmmsclient++ \
 INCLUDEPATH += /usr/include/xmms2 \
     /usr/include/KDE \
     /usr/include \
+    /usr/include/c++/4.3.3 \
     src/core \
     src/playlist \
     src/ui
@@ -15,7 +16,8 @@ HEADERS += src/core/coreplaylist.h \
     src/core/qxmms2.h \
     src/core/types.h \
     src/ui/playlistwidget.h \
-    src/playlist/sortfilterproxymodel.h
+    src/playlist/sortfilterproxymodel.h \
+    src/ui/playlistmanagerwidget.h
 SOURCES += src/core/xmmsqt4.cpp \
     src/core/coreplaylist.cpp \
     src/playlist/tablemodel.cpp \
@@ -23,6 +25,7 @@ SOURCES += src/core/xmmsqt4.cpp \
     src/core/qxmms2.cpp \
     src/ui/playlistwidget.cpp \
     src/ui/kmain.cpp \
-    src/playlist/sortfilterproxymodel.cpp
+    src/playlist/sortfilterproxymodel.cpp \
+    src/ui/playlistmanagerwidget.cpp
 OTHER_FILES += brainstorm.txt \
     TODO.txt

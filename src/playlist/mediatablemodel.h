@@ -50,9 +50,15 @@ private:
     CorePlaylist *core;
 
 public slots:
-    void insertRow ( int pos );
-    void removeRows ( int first, int last );
     void updatePosition ( int pos );
+    void updateData ( int pos, QString key );
+
+private slots:
+    void plRowsAboutToBeInserted( int first, int last );
+    void plRowsInserted();
+    void plRowsAboutToBeRemoved( int first, int last );
+    void plRowsRemoved();
+
 };
 
 #endif // MEDIATABLEMODEL_H

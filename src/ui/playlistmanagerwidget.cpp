@@ -1,9 +1,11 @@
 #include "playlistmanagerwidget.h"
 #include <KIcon>
+#include <QModelIndex>
 
 PlaylistManagerWidget::PlaylistManagerWidget( QWidget *parent, Xmms::Client *xmms )
         : KListWidget( parent )
 {
+    selectedPlaylist = 0;
     this->xmms = xmms;
     activePlaylist = "";
     this->setAlternatingRowColors( true );
@@ -11,6 +13,9 @@ PlaylistManagerWidget::PlaylistManagerWidget( QWidget *parent, Xmms::Client *xmm
 
     if ( xmms )
         gotConnection( xmms->isConnected() );
+
+    connect( this, SIGNAL(itemActivated(QListWidgetItem*)),
+             this, SLOT(entryExecuted(QListWidgetItem*)));
 }
 
 void
@@ -26,6 +31,40 @@ PlaylistManagerWidget::gotConnection( bool ok )
     xmms->playlist.currentActive()( Xmms::bind( &PlaylistManagerWidget::current_active_cb, this ));
 }
 
+//Public slots
+void
+PlaylistManagerWidget::newPlaylist()
+{
+
+}
+
+void
+PlaylistManagerWidget::remove( const QString &name )
+{
+
+}
+
+void
+PlaylistManagerWidget::entryExecuted( QListWidgetItem *item )
+{
+    QFont font = selectedPlaylist->font();
+    font.setBold( false );
+    selectedPlaylist->setFont( font );
+
+    QString playlistName = item->text();
+    emit  playlistSelected( playlistName );
+
+    selectedPlaylist = item;
+
+    font = item->font();
+    font.setBold( true );
+    item->setFont( font );
+
+}
+
+/**
+  *xmms callbacks
+  */
 bool
 PlaylistManagerWidget::playlists_list_cb( const Xmms::List< std::string > &list )
 {
@@ -44,26 +83,18 @@ PlaylistManagerWidget::current_active_cb( const std::string &activePlaylist )
 {
     QListWidgetItem *_item;
 
-    for ( int pos = 0; pos < count () ; pos++ ) {
-        _item = item( pos );
-        if ( _item->text().toStdString() == activePlaylist ){
-            QFont font = _item->font();
-            font.setBold( false );
-            _item->setFont( font );
-            _item->setIcon( QIcon() );
-            break;
-        }
-    }
-
     this->activePlaylist = activePlaylist;
     for ( int pos = 0; pos < count (); pos++ ){
         _item = item( pos );
         if ( _item->text().toStdString() == activePlaylist ){
-            QFont font = _item->font();
-            font.setBold( true );
-            _item->setFont( font );
             KIcon icon( "media-playback-start" );
             _item->setIcon( icon );
+            if ( !selectedPlaylist ){
+                selectedPlaylist = _item;
+                QFont font = _item->font();
+                font.setBold( true );
+                _item->setFont( font );
+            }
             return true;
         }
     }
