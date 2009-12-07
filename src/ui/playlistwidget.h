@@ -25,8 +25,10 @@ public:
 public slots:
     void removeSelection();
     void viewPlaylist( const QString &name );
+    void viewDynamicPlaylist();
     void setFilterVisible( bool ok );
     void addMedia();
+    void shuffle();
 
 signals:
     void play();

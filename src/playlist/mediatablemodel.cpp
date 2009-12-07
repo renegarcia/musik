@@ -48,7 +48,7 @@ MediaTableModel::MediaTableModel( QObject *parent, CorePlaylist *core )
               this, SLOT(plRowsRemoved())) ;
 
     QList < QString > coreKeys( keys );
-    coreKeys << "picture_front";
+    coreKeys << "picture_front" << "id";
     core->setKeys( coreKeys );
 }
 

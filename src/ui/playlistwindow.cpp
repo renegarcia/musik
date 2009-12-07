@@ -1,5 +1,6 @@
 #include "playlistwindow.h"
 #include "qxmms2.h"
+#include <seekslider.h>
 #include <QDockWidget>
 #include <KApplication>
 #include <KAction>
@@ -7,6 +8,7 @@
 #include <KLocale>
 #include <KActionCollection>
 #include <KStandardAction>
+#include <KStatusBar>
 #include <QToolBox>
 
 
@@ -22,27 +24,30 @@ PlaylistWindow::PlaylistWindow( QWidget *parent, Xmms::Client *xmms )
 
     dplman = new DPlaylistManagerWidget( this, xmms );
     connect( dplman, SIGNAL(dPlaylistSelected(QString)),
-             playlist, SLOT(viewDynamicPlaylist(QString)) );
+             playlist, SLOT(viewDynamicPlaylist()) );
 
     QToolBox *toolbox = new QToolBox( this );
     toolbox->addItem( plman, "Playlists" );
     toolbox->addItem( dplman, "Dynamic playlists" );
 
-    dock = new QDockWidget( tr("Playlists"), this );
+    dock = new QDockWidget( this );
     dock->setObjectName( "playlistmanager" );
     dock->setWidget( toolbox );
+    dock->setFeatures( QDockWidget::DockWidgetMovable
+                       | QDockWidget::DockWidgetClosable );
     addDockWidget(Qt::LeftDockWidgetArea, dock );
 
-    //QDockWidget *dDock = new QDockWidget( tr("Dynamic playlists"), this );
-    //dDock->setObjectName( "dplaylistmanager" );
-    //dDock->setWidget( dplman );
-    //addDockWidget( Qt::LeftDockWidgetArea, dDock );
+    qxmms = new QXmms2( this, xmms ); //Ugly!. We must change this
+    SeekSlider *slider = new SeekSlider( this );
+    statusBar()->addPermanentWidget( slider );
+    connect(qxmms, SIGNAL(trackDurationChanged(int)),
+            slider, SLOT(setTrackDuration(int)));
+    connect(qxmms, SIGNAL(trackPositionChanged(int)),
+            slider, SLOT(setTrackPosition(int)));
+    connect(slider, SIGNAL(seek(int)),
+            qxmms, SLOT(seek(int)));
 
-
-
-    QXmms2 *qxmms2 = new QXmms2( this, xmms ); //Ugly!. We must change this
-
-    connect( playlist, SIGNAL(play()), qxmms2, SLOT(play()));
+    connect( playlist, SIGNAL(play()), qxmms, SLOT(play()));
 
     setupActions();
 }
@@ -86,6 +91,41 @@ PlaylistWindow::setupActions()
   actionCollection()->addAction( "find", findAction );
   connect( findAction, SIGNAL(toggled(bool)),
            playlist, SLOT(setFilterVisible(bool)));
+
+  KToggleAction *playAction = new KToggleAction( this );
+  playAction->setText( i18n("Play") );
+  playAction->setIcon( KIcon("media-playback-start") );
+  playAction->setShortcut( Qt::Key_P );
+  actionCollection()->addAction( "play", playAction );
+  connect( playAction, SIGNAL( toggled(bool) ),
+           qxmms, SLOT( playpause(bool)) );
+  connect( qxmms, SIGNAL( serverIsPlaying(bool) ),
+           playAction, SLOT( setChecked(bool) ));
+
+  KAction *nextAction = new KAction( this );
+  nextAction->setText( i18n("Next") );
+  nextAction->setIcon( KIcon("media-skip-forward") );
+  nextAction->setShortcut( Qt::Key_N );
+  actionCollection()->addAction( "next", nextAction );
+  connect( nextAction, SIGNAL(triggered()),
+           qxmms, SLOT(next()));
+
+  KAction *prevAction = new KAction( this );
+  prevAction->setText( i18n("Previous") );
+  prevAction->setIcon( KIcon("media-skip-backward") );
+  prevAction->setShortcut( Qt::Key_B );
+  actionCollection()->addAction( "previous", prevAction );
+  connect( prevAction, SIGNAL(triggered()),
+           qxmms, SLOT(prev()));
+
+  KAction *shuffleAction = new KAction( this );
+  shuffleAction->setText( i18n("Shuffle") );
+  shuffleAction->setIcon( KIcon("media-playlist-shuffle") );
+  shuffleAction->setShortcut( Qt::Key_S );
+  actionCollection()->addAction( "shuffle", shuffleAction );
+  connect( shuffleAction, SIGNAL(triggered()),
+           playlist, SLOT(shuffle()));
+
 
   KStandardAction::quit(kapp, SLOT(quit()),
                         actionCollection());

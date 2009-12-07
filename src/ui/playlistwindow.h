@@ -8,6 +8,7 @@
 
 
 class QDockWidget;
+class QXmms2;
 
 class PlaylistWindow : public KXmlGuiWindow
 {
@@ -17,6 +18,7 @@ public:
     PlaylistWindow( QWidget *parent = 0, Xmms::Client *xmms = 0 );
 
 private:
+    QXmms2 *qxmms;
     PlaylistWidget *playlist;
     PlaylistManagerWidget *plman;
     DPlaylistManagerWidget *dplman;

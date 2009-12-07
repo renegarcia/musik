@@ -44,6 +44,9 @@ QXmms2::gotConnection ( bool ok )
 
     xmms->playback.broadcastCurrentID()(
             Xmms::bind( &QXmms2::current_id_cb, this ));
+
+    xmms->playback.signalPlaytime()(
+            Xmms::bind(&QXmms2::playtime_cb, this));
 }
 
 infoHash
@@ -69,6 +72,15 @@ QXmms2::playpause()
         xmms->playback.pause();
     else
         xmms->playback.start();
+}
+
+void
+QXmms2::playpause( bool ok )
+{
+    if ( ok )
+        xmms->playback.start();
+    else
+        xmms->playback.pause();
 }
 
 void
@@ -129,6 +141,10 @@ QXmms2::get_info_cb( const Xmms::PropDict &info )
         xmms->bindata.retrieve( hash )(
                 Xmms::bind(&QXmms2::bindata_retrieve_cb, this));
     }
+    if ( info.contains("duration") ){
+        int duration = info.get< int > ("duration");
+        emit trackDurationChanged( duration );
+    }
     emit currentInfoChanged( _currentInfo );
     return true;
 }
@@ -164,5 +180,19 @@ bool
 QXmms2::status_cb( const Xmms::Playback::Status status )
 {
     this->status = status;
+
+    if ( status == Xmms::Playback::PLAYING )
+        emit serverIsPlaying( true );
+    else
+        emit serverIsPlaying( false );
+
+    return true;
+}
+
+bool
+QXmms2::playtime_cb( unsigned int ms )
+{
+    int position = static_cast< int > ( ms );
+    emit trackPositionChanged( position );
     return true;
 }

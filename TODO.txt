@@ -12,3 +12,5 @@ more aware of the core and the xmms api.
 3. implement QXmmss2::seek ( int ms ) DONE
 
 4. Connect dataChanged signal from the core to the models
+
+5. Cache id in the core and manage update medialib entry properly

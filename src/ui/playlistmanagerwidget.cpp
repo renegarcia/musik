@@ -69,8 +69,9 @@ bool
 PlaylistManagerWidget::playlists_list_cb( const Xmms::List< std::string > &list )
 {
     QString name;
-    for ( list.first(); list.isValid(); ++list ){
-        name = QString::fromLocal8Bit( ( *list ).c_str() );
+    for ( Xmms::List< std::string >::const_iterator i(list.begin()),
+          i_end(list.end()); i != i_end; ++i ){
+        name = QString::fromLocal8Bit( ( *i ).c_str() );
         if ( name.startsWith('_') )
             continue;
         new QListWidgetItem( name, this );

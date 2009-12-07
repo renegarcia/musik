@@ -23,8 +23,9 @@ public:
     infoHash currentInfo();
 
 public slots:
-    void seek( int ms ); //seek is not implemented yet!
+    void seek( int ms );
     void playpause();
+    void playpause( bool ok );
     void play();
     void pause();
     void next();
@@ -35,6 +36,9 @@ signals:
     void currentIdChanged( unsigned int id );
     void currentInfoChanged( infoHash );
     void currentArtChanged( QPixmap );
+    void serverIsPlaying( bool ok );
+    void trackDurationChanged( int ms );
+    void trackPositionChanged( int ms );
 
 private:
     const Xmms::Client *xmms;
@@ -50,6 +54,7 @@ private:
     void update_hash( const std::string &key,
                      const Xmms::PropDict::Variant &value,
                      const std::string &source);
+    bool playtime_cb( unsigned int ms );
 };
 
 #endif // QXMMS2_H

@@ -12,7 +12,7 @@ PlaylistWidget::PlaylistWidget( QWidget *parent, Xmms::Client *xmms )
 
     view = new QTreeView( this );
     view->setSelectionBehavior( QAbstractItemView::SelectRows );
-    view->setAlternatingRowColors( true );
+    //view->setAlternatingRowColors( true );
     view->setRootIsDecorated( false );
     view->setSelectionMode( QAbstractItemView::ExtendedSelection );
     view->setDragEnabled( true );
@@ -74,6 +74,12 @@ PlaylistWidget::viewPlaylist( const QString &name )
 }
 
 void
+PlaylistWidget::viewDynamicPlaylist()
+{
+    core->setPlaylist( "_musik" );
+}
+
+void
 PlaylistWidget::removeSelection()
 {
     QModelIndexList rowList = view->selectionModel()->selectedRows();
@@ -110,6 +116,12 @@ PlaylistWidget::addMedia()
     foreach ( QString absName, files ){
         core->add( "file://" + absName );
     }
+}
+
+void
+PlaylistWidget::shuffle()
+{
+    core->shuffle();
 }
 
 //private slots

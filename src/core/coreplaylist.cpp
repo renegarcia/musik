@@ -89,6 +89,12 @@ CorePlaylist::sort( QString property )
 }
 
 void
+CorePlaylist::shuffle()
+{
+    xmms->playlist.shuffle( _playlistName );
+}
+
+void
 CorePlaylist::setKeys( QList< QString > keys )
 {
     this->keys = keys;
@@ -161,11 +167,16 @@ CorePlaylist::rowCount()
 }
 
 bool
-CorePlaylist::list_entries_cb( const Xmms::List< unsigned int > &list )
+CorePlaylist::list_entries_cb( const Xmms::List< int > &list )
 {
-    for ( list.first(); list.isValid(); ++list ) {
-        xmms->medialib.getInfo( *list )( boost::bind( &CorePlaylist::get_info_cb, this, _1, -1));
+    for ( Xmms::List < int >::const_iterator i( list.begin()), i_end( list.end());
+    i != i_end;
+    ++i){
+        xmms->medialib.getInfo( *i )( boost::bind( &CorePlaylist::get_info_cb, this, _1, -1));
     }
+    /*for ( list.first(); list.isValid(); ++list ) {
+        xmms->medialib.getInfo( *list )( boost::bind( &CorePlaylist::get_info_cb, this, _1, -1));
+    }*/
     return true;
 }
 
@@ -242,7 +253,7 @@ CorePlaylist::update_info_cb( const Xmms::PropDict &info )
 
     for ( int pos = 0; pos < cache.size(); pos++ ){
         entry = cache.at( pos );
-        if ( entry.value( "id" ) == id ){
+        if ( entry.value( "id" ).toUInt() == id ){
             foreach ( QString key, entry.keys() ){
                 xkey = key.toStdString();
                 if ( info.contains( xkey ) ){
@@ -316,11 +327,11 @@ CorePlaylist::current_active_cb( const std::string &activeName )
 bool
 CorePlaylist::entry_changed_cb( const unsigned int id )
 {
-    foreach( entry_t entry, cache )
-        if ( entry.value("id") == id ){
+    foreach( entry_t entry, cache ){
+        QVariant value = entry.value( "id" );
+        if ( value.toUInt() == id )
             xmms->medialib.getInfo( id )( Xmms::bind( &CorePlaylist::update_info_cb, this));
-            break;
-        }
+    }
     return true;
 }
 

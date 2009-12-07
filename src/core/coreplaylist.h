@@ -34,6 +34,7 @@ public:
     void move ( unsigned int oldPos, unsigned int newPos );
 
     void sort( QString property );
+    void shuffle();
 
     /**
       * set keys whose values will be stored in the cache.
@@ -69,7 +70,7 @@ private:
 
     void gotConnection( bool ok );
 
-    bool list_entries_cb( const Xmms::List< unsigned int > &list );
+    bool list_entries_cb( const Xmms::List< int > &list );
     bool get_info_cb( const Xmms::PropDict &info, int playlistPos = -1 );
     bool update_info_cb( const Xmms::PropDict &info );
     bool for_each_fcn (const std::string &key, const Xmms::Dict::Variant &value,
